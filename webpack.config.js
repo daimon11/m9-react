@@ -1,0 +1,74 @@
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+const mode = process.env.NODE_ENV || 'development';
+const target = mode === 'development' ? 'web' : 'browserslist';
+const devtool = mode === 'development' ? 'source-map' : undefined;
+
+module.exports = {
+  mode,
+  target,
+  devtool,
+  devServer: {
+    hot: true,
+  },
+  entry: ['@babel/polyfill', './src/index.jsx'],
+  output: {
+    filename: '[name][contenthash].js',
+    path: path.resolve(__dirname, 'dist'),
+    clean: true,
+    assetModuleFilename: 'assets/[hash][ext][query]',
+  },
+  resolve: {
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './public/index.html',
+    }),
+    new MiniCssExtractPlugin({
+      filename: '[name][contenthash].css',
+    }),
+  ],
+  module: {
+    rules: [
+      {
+        test: /\.html$/i,
+        loader: 'html-loader',
+      },
+      {
+        test: /\.(sa|sc|c)ss$/i,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          //! если что-то не работает, то надо инфу из m9u1 переписать сюда
+          'postcss-loader',
+          'sass-loader',
+        ],
+      },
+      {
+        test: /\.(jpg|jpeg|png|svg|gif)$/i,
+        type: 'asset/resource',
+      },
+      {
+        test: /\.(woff2|woff|eot|ttf|otf)/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'fonts/[hash][ext]',
+        },
+      },
+      {
+        test: /\.[tj]sx?$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            cacheDirectory: true,
+            presets: ['@babel/preset-react', '@babel/preset-env'],
+          },
+        },
+      },
+    ],
+  },
+};
